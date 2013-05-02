@@ -105,8 +105,9 @@ handle_cast(_Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info(_Info, State) ->
-    error_logger:info_msg("~s: fetching data from feeds\n", [?MODULE]),
+    error_logger:info_msg("~s: fetching data from feeds...\n", [?MODULE]),
     fetch_all_feeds(State),
+    error_logger:info_msg("~s: fetching completed.\n", [?MODULE]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -164,7 +165,9 @@ handle_results(FeedID, Json) ->
             {error,_}=ValidationResult -> ValidationResult;
             {ok, Validated} ->
                 Extracted = extract_data(Validated),
-                error_logger:info_msg("Fetched from ~p: ~p\n", [FeedID, Extracted])
+                error_logger:info_msg("Fetched from ~p: ~p\n", [FeedID, Extracted]),
+                {Location, Measurements} = Extracted,
+                ok = aggrsense_storage:add(FeedID, Location, Measurements)
         end,
     error_logger:info_msg("Reading from ~p: ~p\n", [FeedID, DisplayResult]).
 
@@ -246,20 +249,22 @@ parse_date(Str) ->
     end).
 
 extractor_test() ->
-?with_trace(begin
+%?with_trace(begin
     application:start(sasl),
     Json = "{\"id\":115602,\"title\":\"Mt. Jalapeño\",\"private\":\"false\",\"tags\":[\"device:type=Air Quality Egg\",\"device:type=airqualityegg\"],\"description\":\"Egg@erkkila.org\",\"feed\":\"https://api.cosm.com/v2/feeds/115602.json\",\"status\":\"live\",\"updated\":\"2013-05-02T12:20:56.491692Z\",\"created\":\"2013-02-28T15:42:59.205526Z\",\"creator\":\"https://cosm.com/users/airqualityegg\",\"version\":\"1.0.0\",\"datastreams\":[{\"id\":\"CO_00-04-a3-37-cc-7f_1\",\"current_value\":\"15289\",\"at\":\"2013-05-02T12:20:51.178061Z\",\"max_value\":\"16500.0\",\"min_value\":\"5212.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=19\",\"aqe:sensor_address=00:04:a3:37:cc:7f\",\"aqe:sensor_index=1\",\"aqe:sensor_type=CO\"],\"unit\":{\"symbol\":\"ppb\",\"label\":\"ppb\"}},{\"id\":\"CO_raw_00-04-a3-37-cc-7f_1\",\"current_value\":\"112500\",\"at\":\"2013-05-02T12:20:46.039326Z\",\"max_value\":\"199799.0\",\"min_value\":\"36600.0\",\"tags\":[\"aqe:data_origin=raw\",\"aqe:firmware_version=19\",\"aqe:sensor_address=00:04:a3:37:cc:7f\",\"aqe:sensor_index=1\",\"aqe:sensor_type=CO\"],\"unit\":{\"symbol\":\"ohms\",\"label\":\"ohms\"}},{\"id\":\"Dust_00-04-a3-37-dd-08_0\",\"current_value\":\"0\",\"at\":\"2013-05-02T12:19:21.700657Z\",\"max_value\":\"6338.0\",\"min_value\":\"0.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:dd:08\",\"aqe:sensor_index=0\",\"aqe:sensor_type=Dust\"],\"unit\":{\"symbol\":\"pcs/283ml\",\"label\":\"pcs/283ml\"}},{\"id\":\"Dust_raw_00-04-a3-37-dd-08_0\",\"current_value\":\"0\",\"at\":\"2013-05-02T12:19:16.666927Z\",\"max_value\":\"10559.0\",\"min_value\":\"0.0\",\"tags\":[\"aqe:data_origin=raw\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:dd:08\",\"aqe:sensor_index=0\",\"aqe:sensor_type=Dust\"],\"unit\":{\"symbol\":\"ohms\",\"label\":\"ohms\"}},{\"id\":\"Humidity_00-04-a3-37-bb-24_1\",\"current_value\":\"33\",\"at\":\"2013-05-02T12:20:30.728794Z\",\"max_value\":\"54.0\",\"min_value\":\"17.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=4\",\"aqe:sensor_address=00:04:a3:37:bb:24\",\"aqe:sensor_index=1\",\"aqe:sensor_type=Humidity\"],\"unit\":{\"symbol\":\"%\",\"label\":\"%\"}},{\"id\":\"NO2_00-04-a3-37-cc-7f_0\",\"current_value\":\"1124\",\"at\":\"2013-05-02T12:20:40.970205Z\",\"max_value\":\"1552.0\",\"min_value\":\"1.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=19\",\"aqe:sensor_address=00:04:a3:37:cc:7f\",\"aqe:sensor_index=0\",\"aqe:sensor_type=NO2\"],\"unit\":{\"symbol\":\"ppb\",\"label\":\"ppb\"}},{\"id\":\"NO2_raw_00-04-a3-37-cc-7f_0\",\"current_value\":\"892669\",\"at\":\"2013-05-02T12:20:35.830248Z\",\"max_value\":\"1301368.0\",\"min_value\":\"726.0\",\"tags\":[\"aqe:data_origin=raw\",\"aqe:firmware_version=19\",\"aqe:sensor_address=00:04:a3:37:cc:7f\",\"aqe:sensor_index=0\",\"aqe:sensor_type=NO2\"],\"unit\":{\"symbol\":\"ohms\",\"label\":\"ohms\"}},{\"id\":\"O3_00-04-a3-37-bd-41_0\",\"current_value\":\"1211\",\"at\":\"2013-05-02T12:19:01.405914Z\",\"max_value\":\"2390.0\",\"min_value\":\"80.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:bd:41\",\"aqe:sensor_index=0\",\"aqe:sensor_type=O3\"],\"unit\":{\"symbol\":\"ppb\",\"label\":\"ppb\"}},{\"id\":\"O3_raw_00-04-a3-37-bd-41_0\",\"current_value\":\"115899\",\"at\":\"2013-05-02T12:20:56.258637Z\",\"max_value\":\"189899.0\",\"min_value\":\"8999.0\",\"tags\":[\"aqe:data_origin=raw\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:bd:41\",\"aqe:sensor_index=0\",\"aqe:sensor_type=O3\"],\"unit\":{\"symbol\":\"ohms\",\"label\":\"ohms\"}},{\"id\":\"Temperature_00-04-a3-37-bb-24_0\",\"current_value\":\"20\",\"at\":\"2013-05-02T12:20:25.457899Z\",\"max_value\":\"25.0\",\"min_value\":\"18.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=4\",\"aqe:sensor_address=00:04:a3:37:bb:24\",\"aqe:sensor_index=0\",\"aqe:sensor_type=Temperature\"],\"unit\":{\"symbol\":\"deg C\",\"label\":\"deg C\"}},{\"id\":\"VOC_00-04-a3-37-b3-ec_0\",\"current_value\":\"-10142\",\"at\":\"2013-05-02T12:19:11.631008Z\",\"max_value\":\"28.0\",\"min_value\":\"-16741.0\",\"tags\":[\"aqe:data_origin=computed\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:b3:ec\",\"aqe:sensor_index=0\",\"aqe:sensor_type=VOC\"],\"unit\":{\"symbol\":\"ppm\",\"label\":\"ppm\"}},{\"id\":\"VOC_raw_00-04-a3-37-b3-ec_0\",\"current_value\":\"268250\",\"at\":\"2013-05-02T12:19:06.508500Z\",\"max_value\":\"427600.0\",\"min_value\":\"4900.0\",\"tags\":[\"aqe:data_origin=raw\",\"aqe:firmware_version=16\",\"aqe:sensor_address=00:04:a3:37:b3:ec\",\"aqe:sensor_index=0\",\"aqe:sensor_type=VOC\"],\"unit\":{\"symbol\":\"ohms\",\"label\":\"ohms\"}}],\"location\":{\"exposure\":\"indoor\",\"domain\":\"physical\",\"ele\":\"642\",\"lat\":43.0695827,\"lon\":-77.1999378}}",
     {ok, Validated} = parse_and_validate_json(Json),
 
-    ?assertMatch([{<<"CO">>,          _, 15289},
-                  {<<"Dust">>,        _, 0},
-                  {<<"Humidity">>,    _, 33},
-                  {<<"NO2">>,         _, 1124},
-                  {<<"O3">>,          _, 1211},
-                  {<<"Temperature">>, _, 20},
-                  {<<"VOC">>,         _, -10142}],
-                 lists:sort(extract_data(Validated)))
-end).
+    {_Location={_,_,_,_}, Measurements} = extract_data(Validated),
+    ?assertMatch( [{<<"CO">>,          _, 15289},
+                   {<<"Dust">>,        _, 0},
+                   {<<"Humidity">>,    _, 33},
+                   {<<"NO2">>,         _, 1124},
+                   {<<"O3">>,          _, 1211},
+                   {<<"Temperature">>, _, 20},
+                   {<<"VOC">>,         _, -10142}],
+                  lists:sort(Measurements))
+%end)
+.
 
 -endif.
 

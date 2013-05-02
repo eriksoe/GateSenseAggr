@@ -28,7 +28,9 @@ init([]) ->
         [{aggrsense_yaws_sup, {aggrsense_yaws_sup, start_link, []},
           permanent, 120000, worker, [aggrsense_yaws_sup]},
          {aggrsense_fetcher, {aggrsense_fetcher, start_link, []},
-          permanent, 120000, worker, [aggrsense_fetcher]}
+          permanent, 120000, worker, [aggrsense_fetcher]},
+         {aggrsense_storage, {aggrsense_storage, start_link, []},
+          permanent, 120000, worker, [aggrsense_storage]}
         ],
     {ok, { {one_for_one, 5, 10}, ChildSpec} }.
 
