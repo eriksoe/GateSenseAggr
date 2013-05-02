@@ -145,7 +145,10 @@ fetch_feed(FeedID, #state{cosm_api_key=ApiKey}) when is_integer(FeedID) ->
         {error, Error} ->
             error_logger:warning_msg("~s: Fetch failed for ~p: ~p\n",
                                      [?MODULE, FeedID, Error]);
-        {ok, {_StatusLine, _Headers, Body}} ->
+        {ok, {{_,200,_}, _Headers, Body}} ->
             error_logger:info_msg("~s: Fetched ~p: ~p\n",
-                                  [?MODULE, FeedID, Body])
+                                  [?MODULE, FeedID, Body]);
+        {ok, {{_,ErrCode,_}, _Headers, Body}} ->
+            error_logger:info_msg("~s: Fetched failed for ~p - http-code ~p: ~p\n",
+                                  [?MODULE, FeedID, ErrCode, Body])
     end.
