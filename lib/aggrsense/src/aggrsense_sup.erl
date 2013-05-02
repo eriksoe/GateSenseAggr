@@ -26,7 +26,9 @@ start_link() ->
 init([]) ->
     ChildSpec =
         [{aggrsense_yaws_sup, {aggrsense_yaws_sup, start_link, []},
-          permanent, 120000, worker, [aggrsense_yaws_sup]}
+          permanent, 120000, worker, [aggrsense_yaws_sup]},
+         {aggrsense_fetcher, {aggrsense_fetcher, start_link, []},
+          permanent, 120000, worker, [aggrsense_fetcher]}
         ],
     {ok, { {one_for_one, 5, 10}, ChildSpec} }.
 

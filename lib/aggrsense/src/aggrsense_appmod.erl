@@ -87,7 +87,6 @@ aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
 parse_and_validate_json(JsonStr, Spec) ->
     try mochijson2:decode(JsonStr) of
         JsonValue ->
-            error_logger:info_msg("DB| parse_and_validate_json: json=~p\n", [JsonValue]),
             case valijate:validate(JsonValue, Spec) of
                 {ok, _}=Result -> Result;
                 {validation_error, _,_}=VErr ->

@@ -5,7 +5,9 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  sasl,
+                  inets
                  ]},
   {included_applications, [yaws]},
   {mod, { aggrsense_app, []}},
