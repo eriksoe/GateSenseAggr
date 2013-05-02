@@ -27,3 +27,13 @@ Code Map
 
 REST dispatcher::
      lib/aggrsense/src/aggrsense_appmod.erl
+
+
+Bibliography
+------------
+
+CKAN API::
+    [http://docs.ckan.org/en/latest/api.html]
+
+COSM REST API::
+    [http://cosm.com/docs/quickstart/curl.html]
