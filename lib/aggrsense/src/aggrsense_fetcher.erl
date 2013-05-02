@@ -164,7 +164,8 @@ handle_results(FeedID, Json) ->
         case parse_and_validate_json(Json) of
             {error,_}=ValidationResult -> ValidationResult;
             {ok, Validated} ->
-                extract_data(Validated)
+                Extracted = extract_data(Validated),
+                error_logger:info_msg("Fetched from ~p: ~p\n", [FeedID, Extracted])
         end,
     error_logger:info_msg("Reading from ~p: ~p\n", [FeedID, DisplayResult]).
 
@@ -203,18 +204,14 @@ extract_data({_Timestamp, Measurements0,rest}) ->
             {<<"Temperature">>, <<"deg C">>},
             {<<"VOC">>, <<"ppm">>}],
     Measurements =
-        [{MesName, Time, string_to_float(Value)}
+        [{MesName, parse_date(Time), string_to_float(Value)}
          || {_Id,Time,Tags,{Unit,rest},Value,rest} <- Measurements0,
             {MesName, MesUnit} <- Spec,
             Unit == MesUnit,
             lists:member(<<"aqe:sensor_type=", MesName/binary>>, Tags)
-            %% binary:prefix(<<MesName/binary, "_">>, Id)
         ],
     Measurements.
 
-%% binary_prefix(Prefix, Subject) ->
-%%     PLen = byte_size(Prefix),
-%%     byte_size(Subject) >= PLen andalso binary:part(Subject,0,PLen)==Prefix.
 
 string_to_float(S) when is_binary(S) ->
     string_to_float(binary_to_list(S));
@@ -224,6 +221,12 @@ string_to_float(S) ->
     catch error:badarg ->
         list_to_float(S)
     end.
+
+parse_date(Str) when is_binary(Str) ->
+    parse_date(binary_to_list(Str));
+parse_date(Str) ->
+    {ok, [Y,Mo,D,H,Mi,S,_Fracs], []} = io_lib:fread("~d-~d-~dT~d:~d:~d.~dZ",Str),
+    calendar:datetime_to_gregorian_seconds({{Y,Mo,D},{H,Mi,S}}).
 
 -ifdef(TEST).
 -define(with_trace(Body),
