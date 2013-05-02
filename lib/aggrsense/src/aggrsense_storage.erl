@@ -192,6 +192,6 @@ query_rect_step(#measurement{key={_FeedID,MesName}, value=Value}, Acc) ->
                                 max=max(Max,Value),
                                 count=Count + 1,
                                 sum=Sum + Value}}
-             | Acc]
+             | Rest]
     end.
 
