@@ -24,5 +24,9 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    ChildSpec =
+        [{aggrsense_yaws_sup, {aggrsense_yaws_sup, start_link, []},
+          permanent, 120000, worker, [aggrsense_yaws_sup]}
+        ],
+    {ok, { {one_for_one, 5, 10}, ChildSpec} }.
 

@@ -7,6 +7,7 @@
                   kernel,
                   stdlib
                  ]},
+  {included_applications, [yaws]},
   {mod, { aggrsense_app, []}},
   {env, []}
  ]}.

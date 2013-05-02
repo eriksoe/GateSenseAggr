@@ -6,4 +6,5 @@ deps
 
 *~
 *.bak
-ebin/*.app
+lib/aggrsense/ebin/*.app
+rel/aggrsense
