@@ -159,7 +159,6 @@ fetch_feed(FeedID, #state{cosm_api_key=ApiKey}) when is_integer(FeedID) ->
     end.
 
 handle_results(FeedID, Json) ->
-    %% TODO: Extract location
     DisplayResult =
         case parse_and_validate_json(Json) of
             {error,_}=ValidationResult -> ValidationResult;
@@ -178,6 +177,12 @@ parse_and_validate_json(JsonStr) ->
                                                     {<<"unit">>, {object, [{<<"symbol">>, string}, ?ignore_rest]}},
                                                     {<<"current_value">>, string},
                                                     ?ignore_rest]}}},
+                     {<<"location">>, {object,
+                                       [{<<"lon">>, number},
+                                        {<<"lat">>, number},
+                                        {<<"ele">>, string},
+                                        {<<"exposure">>, string},
+                                       ?ignore_rest]}},
                      ?ignore_rest]},
     parse_and_validate_json(JsonStr, Spec).
 
@@ -195,7 +200,7 @@ parse_and_validate_json(JsonStr, Spec) ->
             {error, "Error in JSON syntax"}
     end.
 
-extract_data({_Timestamp, Measurements0,rest}) ->
+extract_data({_Timestamp, Measurements0,Location0, rest}) ->
     Spec = [{<<"Dust">>, <<"pcs/283ml">>},
             {<<"CO">>, <<"ppb">>},
             {<<"Humidity">>, <<"%">>},
@@ -210,7 +215,9 @@ extract_data({_Timestamp, Measurements0,rest}) ->
             Unit == MesUnit,
             lists:member(<<"aqe:sensor_type=", MesName/binary>>, Tags)
         ],
-    Measurements.
+    {Lon,Lat,Ele,Exposure,rest} = Location0,
+    Location = {Lon,Lat,Ele,Exposure},
+    {Location, Measurements}.
 
 
 string_to_float(S) when is_binary(S) ->
