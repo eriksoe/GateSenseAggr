@@ -1,0 +1,18 @@
+
+
+Usecase: dynamic aggregation
+----------------------------
+
+* Aggregator follows data streams:
+  from COSM.
+* User asks for a new aggregation:
+  POST /aggrsense/query
+  {"x1":_, "x2":_, "y1":_, "y2":_, "destResource": _}
+* Aggregator calculates result
+* Aggregator posts result on CKAN, at $destResource
+
+Plan:
+* Obtain COSM API key
+* 
+
+curl -XPOST -d '{"destResource":"foo", "x1":10, "y1":5, "x2":15, "y2":7}' -v http://localhost:8080/aggrsense/aqe_area
