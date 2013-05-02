@@ -18,6 +18,12 @@ To run the server:
     make rel
     make node-console
 
-then access link:http://localhost:8080/aggrsense[http://localhost:8080/aggrsense].
+then access [http://localhost:8080/aggrsense]
 
 Good luck! :-)
+
+Code Map
+--------
+
+REST dispatcher::
+     lib/aggrsense/src/aggrsense_appmod.erl
