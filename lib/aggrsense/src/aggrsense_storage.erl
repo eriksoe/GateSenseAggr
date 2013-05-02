@@ -10,8 +10,10 @@
 
 -behaviour(gen_server).
 
+-include_lib("stdlib/include/ms_transform.hrl").
+
 %% API
--export([start_link/0, add/3]).
+-export([start_link/0, add/3, query_rect/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -25,6 +27,9 @@
          lon, lat, % Coordinates
          value
         }).
+
+-record(summary, {min,max,count,sum}).
+
 -record(state, {table}).
 
 %%%===================================================================
@@ -96,8 +101,8 @@ handle_call({add, FeedID, _Location={Lon,Lat,_,_}, Measurements}, _From,
     true = ets:insert(Table, Objects),
     error_logger:info_msg("~s: ~p rows updated\n", [?MODULE, length(Measurements)]),
     {reply, ok, State};
-handle_call({query_rect, X1, Y1, X2, Y2}, _From, State=#state{table=Table}) ->
-    Result = 'TODO',
+handle_call({query_rect, X1, Y1, X2, Y2}, _From, State) ->
+    Result = handle_query_rect(X1, Y1, X2, Y2, State),
     {reply, Result, State};
 handle_call(_Request, _From, State) ->
     {noreply, State}.
@@ -156,3 +161,37 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+handle_query_rect(X1, Y1, X2, Y2, #state{table=Table}) ->
+    Measurements =
+        ets:select(Table,
+                   ets:fun2ms(
+                     fun(#measurement{lon=Lon,lat=Lat}=M) when Lon>=X1,
+                                                               Lon=<X2,
+                                                               Lat>=Y1,
+                                                               Lat=<Y2
+                                                               ->
+                             M
+                     end)),
+    lists:foldl(fun query_rect_step/2,
+                [],
+                Measurements).
+
+query_rect_step(#measurement{key={_FeedID,MesName}, value=Value}, Acc) ->
+    %% 
+    case lists:keytake(MesName, 1, Acc) of
+        false ->
+            [{MesName, #summary{min=Value, max=Value, count=1, sum=Value}}
+             | Acc];
+        {value, {MesName, #summary{min=Min,
+                                   max=Max,
+                                   count=Count,
+                                   sum=Sum}},
+                 Rest} ->
+            [{MesName, #summary{min=min(Min,Value),
+                                max=max(Max,Value),
+                                count=Count + 1,
+                                sum=Sum + Value}}
+             | Acc]
+    end.
+
