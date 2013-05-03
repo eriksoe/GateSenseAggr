@@ -103,7 +103,7 @@ handle_call({add, FeedID, _Location={Lon,Lat,_,_}, Measurements}, _From,
     {reply, ok, State};
 handle_call({query_rect, X1, Y1, X2, Y2}, _From, State) ->
     Result = handle_query_rect(X1, Y1, X2, Y2, State),
-    {reply, Result, State};
+    {reply, {ok,Result}, State};
 handle_call(_Request, _From, State) ->
     {noreply, State}.
 

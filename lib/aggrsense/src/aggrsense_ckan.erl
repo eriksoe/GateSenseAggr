@@ -42,9 +42,9 @@ create_resource(IP, DataSet, ApiKey, ResourceName) ->
 	Headers = [{"X-CKAN-API-Key", ApiKey}],
 	Type = "application/json",
 	RequestBody = {[
-					{"package_id", list_to_binary(DataSet)}, 
+					{"package_id", iolist_to_binary(DataSet)}, 
 					{"url", <<"/area">>},
-					{"name", list_to_binary(ResourceName)}]},
+					{"name", iolist_to_binary(ResourceName)}]},
 	JsonBody = iolist_to_binary(mochijson2:encode(RequestBody)),
 	% Body = "{\"resource_id\" :\"" ++ ResourceName ++ "\", " ++ Data ++ "}",
 	io:format("Body=~s\n", [JsonBody]),
