@@ -1,4 +1,3 @@
-
 -module (aggrsense_ckan).
 
 -export ([create_resource/2]).
@@ -7,26 +6,34 @@
 -export ([run/0]).
 
 create_resource(ResourceName, Data) ->
-    {ok, CKanIP} = application:get_env(aggrsense, ckan_server),
-    {ok, CKanApiKey} = application:get_env(aggrsense, ckan_api_key),
-    {ok, CKanDataset} = application:get_env(aggrsense, ckan_dataset),
-    'TODO'.
+    {ok, IP} = application:get_env(aggrsense, ckan_server),
+    {ok, ApiKey} = application:get_env(aggrsense, ckan_api_key),
+    {ok, DataSet} = application:get_env(aggrsense, ckan_dataset),
+    {ok, ResourceID} = create_resource(IP, DataSet, ApiKey, ResourceName),
+
+    Fields = [
+              {[{"id", <<"sensor">>}, {"type", <<"text">>}]},
+              {[{"id", <<"time">>}, {"type", <<"integer">>}]},
+              {[{"id", <<"value">>}, {"type", <<"float">>}]}
+             ],
+    create_table(ResourceID, IP, ApiKey, Fields),
+    insert(ResourceID,Data,IP,DataSet, ApiKey).
 
 run() ->
-	Fields = 
-							[
-								{[{"id", <<"name">>}, {"type", <<"text">>}]}, 
-								{[{"id", <<"value">>}, {"type", <<"float">>}]}
-							],
+	Fields = [
+         {[{"id", <<"name">>}, {"type", <<"text">>}]}, 
+         {[{"id", <<"value">>}, {"type", <<"float">>}]}
+        ],
 	Data = [{[{"name", <<"egg1">>}, {"value", <<"1234">>}]}],
 	% JsonObj = {[{"name", <<"egg1">>}, {"test", <<"1234">>}]},
 	% Data = lists:flatten(mochijson2:encode(JsonObj)),
 	IP = "54.246.105.104",
 	DataSet = "aqe-aggr",
 	
-	ResourceID = create_resource(IP, DataSet, ApiKey, "Test"),
-	create_table(ResourceID, IP, ApiKey, Fields),
-	insert(ResourceID,Data,IP,DataSet, ApiKey).	
+	%% ResourceID = create_resource(IP, DataSet, ApiKey, "Test"),
+	%% create_table(ResourceID, IP, ApiKey, Fields),
+	%% insert(ResourceID,Data,IP,DataSet, ApiKey).	
+    'DUMMY'.
 
 create_resource(IP, DataSet, ApiKey, ResourceName) ->
   % IP2="127.0.0.1:8080",
@@ -43,7 +50,7 @@ create_resource(IP, DataSet, ApiKey, ResourceName) ->
 	io:format("Body=~s\n", [JsonBody]),
 	case httpc:request(Method, {URL, Headers, Type, JsonBody}, [], []) of
 		{ok, {{_,200,_}, _Headers, Body}} ->
-            handle_results(Body);
+            handle_create_resource_results(Body);
         {ok, {{_,ErrCode,_}, _Headers, Body}} ->
             error_logger:info_msg("~s: Fetched failed for - http-code ~p: ~p\n",
                                   [?MODULE, ErrCode, Body]);
@@ -52,14 +59,14 @@ create_resource(IP, DataSet, ApiKey, ResourceName) ->
                                      [?MODULE, Error])
     end.
 
-handle_results(Json) ->
+handle_create_resource_results(Json) ->
 	% io:format("~p\n", [Json]),
 	Spec = {object, [{<<"result">>,
   	{object, [{<<"id">>, string}, {keep_rest, fun(_) -> ignore end}]}},
     {keep_rest, fun(_) -> ignore end}]},
  	% Spec = {object, [{<<"id">>, string}, {keep_rest, fun(_) -> ignore end}]},
 	{ok, {{ResourceID, _},_}} = aggrsense_util:parse_and_validate_json(Json, Spec),
-	ResourceID.
+	{ok, ResourceID}.
 
 create_table(ResourceID, IP, ApiKey, Fields) ->
 	URL = "http://" ++ IP ++ "/api/3/action/datastore_create",
@@ -87,7 +94,6 @@ insert(ResourceName, Data, IP, Dataset, ApiKey) ->
 					{"method", <<"insert">>}]},
 	JsonBody = iolist_to_binary(mochijson2:encode(Body)),
 	% Body = "{\"resource_id\" :\"" ++ ResourceName ++ "\", " ++ Data ++ "}",
-	io:format("Body=~s\n", [JsonBody]),
 	R = httpc:request(Method, {URL, Headers, Type, JsonBody}, [], []),
 	{ok, {{"HTTP/1.1",200, State}, Head, ResponseBody}} = R.
 
