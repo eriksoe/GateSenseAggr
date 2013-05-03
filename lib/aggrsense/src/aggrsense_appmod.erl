@@ -69,7 +69,8 @@ test_page(A) ->
      ]}.
 
 aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
-    Area = float((X2-X1) * (Y2-Y1)),
+    {ok, Result} = aggrsense_storage:query_rect(X1,Y1,X2,Y2),
+    aggrsense_ckan:create_resource(DestResource, []),
     {ehtml,
      [{p, [], "AQE Area Query"},
       {dl, [], [
@@ -78,6 +79,6 @@ aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
       {dt, [], "X2:"}, {dd,[], io_lib:format("~f", [float(X2)])},
       {dt, [], "Y2:"}, {dd,[], io_lib:format("~f", [float(Y2)])},
       {dt, [], "Destination Resource:"}, {dd,[], io_lib:format("~s", [DestResource])},
-      {dt, [], "Area:"}, {dd,[], io_lib:format("~f", [Area])}
+      {dt, [], "Result:"}, {dd,[], io_lib:format("~p", [Result])}
                ]}
      ]}.
