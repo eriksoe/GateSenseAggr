@@ -70,7 +70,12 @@ test_page(A) ->
 
 aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
     {ok, Result} = aggrsense_storage:query_rect(X1,Y1,X2,Y2),
-    aggrsense_ckan:create_resource(DestResource, []),
+    JsonResult = [ {[{<<"sensor">>, Name},
+                     {<<"time">>, 0},
+                     {<<"value">>, Sum/Count}]}
+                  || {Name, {summary, _Min,_Max,Count,Sum}} <- Result],
+    {ok,UploadResult} = aggrsense_ckan:create_resource(DestResource, JsonResult),
+    error_logger:info_msg("Upload: ~p\n", [UploadResult]),
     {ehtml,
      [{p, [], "AQE Area Query"},
       {dl, [], [
@@ -79,6 +84,7 @@ aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
       {dt, [], "X2:"}, {dd,[], io_lib:format("~f", [float(X2)])},
       {dt, [], "Y2:"}, {dd,[], io_lib:format("~f", [float(Y2)])},
       {dt, [], "Destination Resource:"}, {dd,[], io_lib:format("~s", [DestResource])},
-      {dt, [], "Result:"}, {dd,[], io_lib:format("~p", [Result])}
+      {dt, [], "Result:"}, {dd,[], io_lib:format("~p", [Result])},
+      {dt, [], "JSON Result:"}, {dd,[], io_lib:format("~p", [JsonResult])}
                ]}
      ]}.

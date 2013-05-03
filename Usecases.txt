@@ -15,4 +15,4 @@ Plan:
 * Obtain COSM API key
 * 
 
-curl -XPOST -d '{"destResource":"foo", "x1":10, "y1":5, "x2":15, "y2":7}' -v http://localhost:8080/aggrsense/aqe_area
+curl -XPOST -d '{"destResource":"foo2", "x1":-81, "y1":30, "x2":90, "y2":45}' -v http://localhost:8080/aggrsense/aqe_area
