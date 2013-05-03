@@ -16,7 +16,7 @@
         end).
 
 -define(PARSE_JSON(A, Spec, Var, Body),
-        case parse_and_validate_json(yaws_api:arg_clidata(A), Spec) of
+        case aggrsense_util:parse_and_validate_json(yaws_api:arg_clidata(A), Spec) of
             {ok, Var} ->
                 (Body);
             {error, XXErrorText} ->
@@ -81,19 +81,3 @@ aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
       {dt, [], "Area:"}, {dd,[], io_lib:format("~f", [Area])}
                ]}
      ]}.
-
-
-%%%========================================
-parse_and_validate_json(JsonStr, Spec) ->
-    try mochijson2:decode(JsonStr) of
-        JsonValue ->
-            case valijate:validate(JsonValue, Spec) of
-                {ok, _}=Result -> Result;
-                {validation_error, _,_}=VErr ->
-                    {error, valijate:error_to_english(VErr)}
-            end
-    catch
-        _:_PErr ->
-            %% Too bad that mochijson2 doesn't give error descriptions.
-            {error, "Error in JSON syntax"}
-    end.
