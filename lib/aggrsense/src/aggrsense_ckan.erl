@@ -28,7 +28,7 @@ create_resource(ResourceName, Data, IP, Dataset, ApiKey) ->
 					{"resource_id", list_to_binary(ResourceName)}, 
 					{"records", Data },
 					{"method", <<"insert">>}]},
-	JsonBody = lists:flatten(mochijson2:encode(Body)),
+	JsonBody = iolist_to_binary(mochijson2:encode(Body)),
 	% Body = "{\"resource_id\" :\"" ++ ResourceName ++ "\", " ++ Data ++ "}",
 	io:format("Body=~s\n", [JsonBody]),
 	R = httpc:request(Method, {URL, Headers, Type, JsonBody}, [], []),
