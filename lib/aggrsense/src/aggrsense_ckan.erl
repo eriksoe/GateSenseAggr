@@ -1,23 +1,18 @@
 -module (aggrsense_ckan).
 
--export ([create_resource/2]).
+-export ([create_resource/3]).
 -export ([create_resource/4]).
 -export ([insert/5]).
 -export ([run/0]).
 
-create_resource(ResourceName, Data) ->
+create_resource(ResourceName, Fields, Data) ->
     {ok, IP} = application:get_env(aggrsense, ckan_server),
     {ok, ApiKey} = application:get_env(aggrsense, ckan_api_key),
     {ok, DataSet} = application:get_env(aggrsense, ckan_dataset),
     {ok, ResourceID} = create_resource(IP, DataSet, ApiKey, ResourceName),
 
-    Fields = [
-              {[{"id", <<"sensor">>}, {"type", <<"text">>}]},
-              {[{"id", <<"time">>}, {"type", <<"integer">>}]},
-              {[{"id", <<"value">>}, {"type", <<"float">>}]}
-             ],
     create_table(ResourceID, IP, ApiKey, Fields),
-    insert(ResourceID,Data,IP,DataSet, ApiKey).
+    insert(ResourceID,Data,IP, DataSet, ApiKey).
 
 run() ->
 	Fields = [

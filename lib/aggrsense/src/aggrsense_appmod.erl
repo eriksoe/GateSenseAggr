@@ -70,11 +70,20 @@ test_page(A) ->
 
 aqe_area_page(X1,Y1,X2,Y2,DestResource) ->
     {ok, Result} = aggrsense_storage:query_rect(X1,Y1,X2,Y2),
+    Fields = [
+              {[{"id", <<"sensor">>}, {"type", <<"text">>}]},
+              {[{"id", <<"count">>}, {"type", <<"integer">>}]},
+              {[{"id", <<"min">>}, {"type", <<"float">>}]},
+              {[{"id", <<"max">>}, {"type", <<"float">>}]},
+              {[{"id", <<"average">>}, {"type", <<"float">>}]}
+             ],
     JsonResult = [ {[{<<"sensor">>, Name},
-                     {<<"time">>, 0},
-                     {<<"value">>, Sum/Count}]}
-                  || {Name, {summary, _Min,_Max,Count,Sum}} <- Result],
-    {ok,UploadResult} = aggrsense_ckan:create_resource(DestResource, JsonResult),
+                     {<<"count">>, Count},
+                     {<<"min">>, Min},
+                     {<<"max">>, Max},
+                     {<<"average">>, Sum/Count}]}
+                  || {Name, {summary, Min,Max,Count,Sum}} <- Result],
+    {ok,UploadResult} = aggrsense_ckan:create_resource(DestResource, Fields, JsonResult),
     error_logger:info_msg("Upload: ~p\n", [UploadResult]),
     {ehtml,
      [{p, [], "AQE Area Query"},
